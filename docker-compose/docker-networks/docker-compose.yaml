@@ -1,0 +1,6 @@
+networks:
+  routable:
+    driver: bridge
+  non-routable:
+    driver: bridge
+    internal: true
