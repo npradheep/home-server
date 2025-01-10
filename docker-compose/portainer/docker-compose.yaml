@@ -1,0 +1,32 @@
+services:
+  portainer:
+    image: portainer/portainer-ce:2.21.0
+    container_name: portainer
+    hostname: portainer
+    ports:
+      - "8100:8000"
+      - "9443:9443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_volume:/data
+    networks:
+      - frontend
+    restart: always
+
+volumes:
+  portainer_volume:
+    name: portainer_volume
+    driver: local
+    driver_opts:
+       o: bind
+       type: none
+       device: /mnt/g/docker/volumes/portainer
+
+networks:
+  frontend:
+    driver: bridge
+    internal: true
+  backend:
+    driver: bridge
+    internal: true
+	
