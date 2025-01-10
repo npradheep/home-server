@@ -10,7 +10,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer_volume:/data
     networks:
-      - frontend
+      - routable
+      - non-routable
     restart: always
 
 volumes:
@@ -21,12 +22,12 @@ volumes:
        o: bind
        type: none
        device: /mnt/g/docker/volumes/portainer
-
+       
 networks:
-  frontend:
+  routable:
+    name: routable
+    driver: bridge
+  non-routable:
+    name: non-routable
     driver: bridge
     internal: true
-  backend:
-    driver: bridge
-    internal: true
-	
