@@ -5,12 +5,12 @@ services:
     restart: always
     command: tunnel run
     environment:
-      - TUNNEL_TOKEN= $Token
+      - TUNNEL_TOKEN=$Token
     volumes:
       - ./cloudflared:/etc/cloudflared
     networks:
-      - frontend
+      - routable
 
 networks:
-  frontend:
+  routable:
    external: true
