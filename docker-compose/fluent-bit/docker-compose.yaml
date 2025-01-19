@@ -1,0 +1,18 @@
+services:
+  fluent-bit:
+    image: fluent/fluent-bit:latest
+    container_name: fluent-bit
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /mnt/g/docker/volumes/fluent-bit/config/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf:ro
+    ports:
+      - "2020:2020" # Optional: Fluent Bit's HTTP server for health checks
+    command: ["/fluent-bit/bin/fluent-bit", "-c", "/fluent-bit/etc/fluent-bit.conf"]
+    restart: unless-stopped
+    networks:
+      - routable
+
+networks:
+  routable:
+    external: true
