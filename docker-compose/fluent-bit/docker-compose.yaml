@@ -1,18 +1,71 @@
+x-default-logging: &logging
+  driver: "json-file"
+  options:
+    max-size: "5m"
+    max-file: "2"
+    tag: "{{.Name}}"
+    
 services:
-  fluent-bit:
-    image: fluent/fluent-bit:latest
-    container_name: fluent-bit
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.9.0
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - bootstrap.memory_lock=true
+    restart: unless-stopped
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
     volumes:
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - es_data:/usr/share/elasticsearch/data
+    networks:
+      - non-routable
+    logging: *logging
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.9.0
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    restart: unless-stopped
+    depends_on:
+      - elasticsearch
+    networks:
+      - routable
+      - non-routable
+    logging: *logging
+
+  fluent-bit:
+    image: fluent/fluent-bit:latest-debug
+    container_name: fluent-bit
+    privileged: true
+    volumes:
+      - /:/host:ro
       - /var/run/docker.sock:/var/run/docker.sock
       - /mnt/g/docker/volumes/fluent-bit/config/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf:ro
-    ports:
-      - "2020:2020" # Optional: Fluent Bit's HTTP server for health checks
+      - /mnt/g/docker/volumes/fluent-bit/config/parsers.conf:/fluent-bit/etc/parsers.conf:ro
     command: ["/fluent-bit/bin/fluent-bit", "-c", "/fluent-bit/etc/fluent-bit.conf"]
     restart: unless-stopped
     networks:
       - routable
+      - non-routable
+    logging: *logging
+
+volumes:
+  es_data:
+    name: elastic_search_volume
+    driver: local
+    driver_opts:
+       o: bind
+       type: none
+       device: /mnt/g/docker/volumes/elastic_search/data
 
 networks:
   routable:
+    external: true
+  non-routable:
     external: true
