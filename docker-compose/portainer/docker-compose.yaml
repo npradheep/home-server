@@ -1,11 +1,14 @@
+x-default-logging: &logging
+  driver: "json-file"
+  options:
+    max-size: "5m"
+    max-file: "2"
+    tag: "{{.Name}}"
 services:
   portainer:
     image: portainer/portainer-ce:2.21.0
     container_name: portainer
     hostname: portainer
-    ports:
-      - "8100:8000"
-      - "9443:9443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer_volume:/data
@@ -13,21 +16,4 @@ services:
       - routable
       - non-routable
     restart: always
-
-volumes:
-  portainer_volume:
-    name: portainer_volume
-    driver: local
-    driver_opts:
-       o: bind
-       type: none
-       device: /mnt/g/docker/volumes/portainer
-       
-networks:
-  routable:
-    name: routable
-    driver: bridge
-  non-routable:
-    name: non-routable
-    driver: bridge
-    internal: true
+    logging: *logging
