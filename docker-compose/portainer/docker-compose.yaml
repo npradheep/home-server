@@ -17,3 +17,21 @@ services:
       - non-routable
     restart: always
     logging: *logging
+
+volumes:
+  portainer_volume:
+    name: portainer_volume
+    driver: local
+    driver_opts:
+       o: bind
+       type: none
+       device: /mnt/g/docker/volumes/portainer
+
+networks:
+  routable:
+    name: routable
+    driver: bridge
+  non-routable:
+    name: non-routable
+    driver: bridge
+    internal: true
