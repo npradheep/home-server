@@ -1,0 +1,50 @@
+x-default-logging: &logging
+  driver: "json-file"
+  options:
+    max-size: "5m"
+    max-file: "2"
+    tag: "{{.Name}}"
+
+services:
+  open-webui:
+      image: ghcr.io/open-webui/open-webui:${WEBUI_DOCKER_TAG-main}
+      container_name: open-web-ui
+      volumes:
+        - open-webui:/app/backend/data
+      # ports:
+      #   - ${OPEN_WEBUI_PORT-3000}:8080
+      environment:
+        OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
+        # WEBUI_SECRET_KEY=''
+        OAUTH_CLIENT_ID:  ${OAUTH_CLIENT_ID}
+        OAUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET}
+        OPENID_PROVIDER_URL: ${OPENID_PROVIDER_URL}
+        OAUTH_PROVIDER_NAME: ${OAUTH_PROVIDER_NAME}
+        OAUTH_SCOPES: ${OAUTH_SCOPES}
+        ENABLE_OAUTH_SIGNUP: true
+        OAUTH_MERGE_ACCOUNTS_BY_EMAIL: true
+        ENABLE_LOGIN_FORM: false
+
+      env_file:
+        - stack.env
+      restart: unless-stopped
+      networks:
+        - routable
+      logging: *logging
+      deploy:
+        resources:
+          limits:
+            memory: 600m
+
+volumes:
+  open-webui:
+    name: open_webui
+    driver: local
+    driver_opts:
+       o: bind
+       type: none
+       device: /mnt/g/docker/volumes/ollama_web_ui
+
+networks:
+  routable:
+    external: true
