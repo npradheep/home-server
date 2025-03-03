@@ -1,0 +1,29 @@
+x-default-logging: &logging
+  driver: "json-file"
+  options:
+    max-size: "5m"
+    max-file: "2"
+    tag: "{{.Name}}"
+    
+services:
+  traefik:
+    image: traefik:v3.3
+    command: --api.insecure=true --providers.docker
+    ports:
+      - "90:80"
+      - "9080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /mnt/g/docker/volumes/traefik/certificates:/certificates
+      - /mnt/g/docker/volumes/traefik/config:/etc/traefik
+    networks:
+      - routable
+    logging: *logging
+    deploy:
+      resources:
+        limits:
+          memory: 600m
+
+networks:
+  routable:
+    external: true
