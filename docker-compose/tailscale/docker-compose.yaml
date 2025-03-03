@@ -1,0 +1,51 @@
+x-default-logging: &logging
+  driver: "json-file"
+  options:
+    max-size: "5m"
+    max-file: "2"
+    tag: "{{.Name}}"
+
+services:
+  ts-authkey-test:
+    image: tailscale/tailscale:latest
+    container_name: tailscale
+    hostname: ts_docker_server
+    privileged: true
+    env_file:
+      - stack.env
+    environment:
+      # - TS_AUTHKEY=${CLIENT_SECRET}
+      # - TS_EXTRA_ARGS=--advertise-tags=tag:container
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=false
+      # - TS_ROUTES=172.21.0.0/24
+      - TS_ACCEPT_ROUTES=true
+      # - TS_ADVERTISE_EXIT_NODE=true
+      - TS_EXTRA_ARGS=--advertise-exit-node --advertise-routes=172.21.0.0/24 --auth-key=${CLIENT_SECRET} --advertise-tags=tag:container --accept-routes
+    volumes:
+      - tailscale:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - net_admin
+    restart: unless-stopped
+    networks:
+      - routable
+    logging: *logging
+    deploy:
+      resources:
+        limits:
+          memory: 100m
+
+networks:
+  routable:
+   external: true
+
+volumes:
+  tailscale:
+    name: tailscale
+    driver: local
+    driver_opts:
+       o: bind
+       type: none
+       device: /mnt/g/docker/volumes/tailscale
