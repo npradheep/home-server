@@ -12,12 +12,16 @@ services:
     restart: always
     command: tunnel run
     environment:
-      - TUNNEL_TOKEN=$token
+      - TUNNEL_TOKEN=${TOKEN}
     volumes:
       - ./cloudflared:/etc/cloudflared
     networks:
       - routable
     logging: *logging
+    deploy:
+      resources:
+        limits:
+          memory: 100m
 
 networks:
   routable:
