@@ -6,38 +6,43 @@ x-default-logging: &logging
     tag: "{{.Name}}"
     
 services:
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.9.0
-    container_name: elasticsearch
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - bootstrap.memory_lock=true
-    restart: unless-stopped
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    volumes:
-      - es_data:/usr/share/elasticsearch/data
-    networks:
-      - non-routable
-    logging: *logging
+  # elasticsearch:
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:8.9.0
+  #   container_name: elasticsearch
+  #   environment:
+  #     - discovery.type=single-node
+  #     - xpack.security.enabled=false
+  #     - bootstrap.memory_lock=true
+  #   restart: unless-stopped
+  #   # ulimits:
+  #   #   memlock:
+  #   #     soft: -1
+  #   #     hard: -1
+  #   volumes:
+  #     - es_data:/usr/share/elasticsearch/data
+  #   networks:
+  #     - non-routable
+  #   logging: *logging
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 512m  # Set memory limit to 1GB
 
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.9.0
-    container_name: kibana
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    ports:
-      - "5601:5601"
-    restart: unless-stopped
-    depends_on:
-      - elasticsearch
-    networks:
-      - routable
-      - non-routable
-    logging: *logging
+  # kibana:
+  #   image: docker.elastic.co/kibana/kibana:8.9.0
+  #   container_name: kibana
+  #   environment:
+  #     - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+  #   ports:
+  #     - "5601:5601"
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - elasticsearch
+  #   networks:
+  #     - routable
+  #     - non-routable
+  #   logging: *logging
+
 
   fluent-bit:
     image: fluent/fluent-bit:latest-debug
@@ -48,21 +53,52 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - /mnt/g/docker/volumes/fluent-bit/config/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf:ro
       - /mnt/g/docker/volumes/fluent-bit/config/parsers.conf:/fluent-bit/etc/parsers.conf:ro
+
     command: ["/fluent-bit/bin/fluent-bit", "-c", "/fluent-bit/etc/fluent-bit.conf"]
     restart: unless-stopped
     networks:
       - routable
       - non-routable
     logging: *logging
+    deploy:
+      resources:
+        limits:
+          memory: 100m
+    
 
-volumes:
-  es_data:
-    name: elastic_search_volume
-    driver: local
-    driver_opts:
-       o: bind
-       type: none
-       device: /mnt/g/docker/volumes/elastic_search/data
+  # metricbeat:
+  #   image: docker.elastic.co/beats/metricbeat:8.9.0
+  #   container_name: metricbeat
+  #   user: root
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #     - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
+  #     - /proc:/hostfs/proc:ro
+  #     - /:/hostfs:ro
+  #     - /mnt/g/docker/volumes/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml
+  #   environment:
+  #     - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+  #     - KIBANA_HOST=http://kibana:5601
+  #   depends_on:
+  #     - elasticsearch
+  #     - kibana
+  #   networks:
+  #     - non-routable
+  #   logging: *logging
+  #   command: ["metricbeat", "-e", "--strict.perms=false"]
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 100m
+
+# volumes:
+#   es_data:
+#     name: elastic_search_volume
+#     driver: local
+#     driver_opts:
+#        o: bind
+#        type: none
+#        device: /mnt/g/docker/volumes/elastic_search/data
 
 networks:
   routable:
