@@ -1,0 +1,50 @@
+x-default-logging: &logging
+  driver: "json-file"
+  options:
+    max-size: "5m"
+    max-file: "2"
+    tag: "{{.Name}}"
+
+services:
+  homarr:
+    image: ghcr.io/homarr-labs/homarr:latest
+    container_name: homarr
+    hostname: homarr
+    restart: always
+    volumes:
+      - homarr:/app
+      - /mnt/g/docker/volumes/homarr/data:/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - SECRET_ENCRYPTION_KEY=${SECRET_ENCRYPTION_KEY}
+      - AUTH_PROVIDERS=oidc
+      - AUTH_OIDC_ISSUER=https://auth.pradheep.me/application/o/homarr/
+      - AUTH_OIDC_CLIENT_SECRET=${CLIENT_SECRET}
+      - AUTH_OIDC_CLIENT_ID=${CLIENT_ID}
+      - AUTH_OIDC_CLIENT_NAME=Authentik
+      # - AUTH_OIDC_AUTO_LOGIN=True
+      # - AUTH_OIDC_ADMIN_GROUP=admins
+      # - AUTH_OIDC_OWNER_GROUP=admins
+      # - AUTH_OIDC_GROUPS_ATTRIBUTE=profile
+      # - AUTH_OIDC_SCOPE_OVERWRITE=openid email profile groups
+      - AUTH_OIDC_URI=https://auth.pradheep.me/application/o/authorize/
+    networks:
+      - routable
+    logging: *logging
+    deploy:
+      resources:
+        limits:
+          memory: 300m
+      
+networks:
+  routable:
+    external: true
+
+volumes:
+  homarr:
+    name: homarr_volume
+    driver: local
+    driver_opts:
+       o: bind
+       type: none
+       device: /mnt/g/docker/volumes/homarr/configs
